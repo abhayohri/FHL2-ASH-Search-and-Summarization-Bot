@@ -12,7 +12,7 @@ running the project:
 Copy the secrets.cfg file into the folder
 
     > env\Scripts\activate
-    > python -m requirements.txt
+    >  python -m pip install -r requirements.txt
 
 [optional] to test if your local is set up correctly via example:
 

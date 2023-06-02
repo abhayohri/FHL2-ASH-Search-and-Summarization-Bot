@@ -9,7 +9,18 @@ Find design and current state: https://microsoft-my.sharepoint.com/:u:/p/abhayoh
 running the project:
 
     > cd SearchAndSummariztion
-Copy the secrets.cfg file into the folder
+Copy the secrets.cfg file into the folder(ask me for the secrets if you don't have it). it looks like:
+
+    [my_api]
+    AZURE_SEARCH_API_VERSION: <secret>
+    AZURE_OPENAI_API_VERSION: <secret>
+    AZURE_SEARCH_ENDPOINT: <secret>
+    AZURE_SEARCH_KEY: <secret>
+    AZURE_OPENAI_ENDPOINT: <secret>
+    AZURE_OPENAI_API_KEY: <secret>
+    PORTAL_TOKEN: <secret>
+    ASH_EXAMPLE_DATA_SOURCE: <secret>
+ Install requirements
 
     > env\Scripts\activate
     >  python -m pip install -r requirements.txt

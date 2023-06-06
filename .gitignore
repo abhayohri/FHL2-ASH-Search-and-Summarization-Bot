@@ -154,6 +154,7 @@ cython_debug/
 
 # secrets
 *secrets.cfg
+*secrets2.cfg
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

@@ -9,7 +9,18 @@ Find design and current state: https://microsoft-my.sharepoint.com/:u:/p/abhayoh
 running the project:
 
     > cd SearchAndSummariztion
-Copy the secrets.cfg file into the folder
+Copy the secrets.cfg file into the folder(ask me for the secrets if you don't have it). it looks like:
+
+    [my_api]
+    AZURE_SEARCH_API_VERSION: <secret>
+    AZURE_OPENAI_API_VERSION: <secret>
+    AZURE_SEARCH_ENDPOINT: <secret>
+    AZURE_SEARCH_KEY: <secret>
+    AZURE_OPENAI_ENDPOINT: <secret>
+    AZURE_OPENAI_API_KEY: <secret>
+    PORTAL_TOKEN: <secret>
+    ASH_EXAMPLE_DATA_SOURCE: <secret>
+ Install requirements
 
     > python -m virtualenv venv
     > env\Scripts\activate
@@ -27,12 +38,14 @@ Use the appropriate mode:
 service runs it as a flask service while Jupyter just runs the notebook example  
 
 
- You should get back a response describing the 
+ This asks the question: "what are the Authentication issues?"  
+ You should get back the following response or somethin similar to it 
+
 
     Azure OpenAI ChatGPT Answer:
     For the first Tracking ID (FLX7-VD8), the Authentication issues were caused by a code issue when refreshing the Microsoft Authenticator app using the Pull-to-Refresh feature on Android devices. This issue impacted only one scenario where customers used a pull-down refresh instead of interacting with the push notification. For the second Tracking ID (M0L-VC0), the Authentication issues were caused by a third-party provider's push notification service experiencing a high rate of errors. For the third Tracking ID (RKWL-T98), the Authentication issues were caused by voice service providers in the Philippines, which impacted Azure MFA users. For the fourth Tracking ID (BL8Y-DT8), the Authentication issues were caused by a third-party push notification service experiencing high rates of errors. For the fifth Tracking ID, (no content provided), the Authentication issues were caused by a recent code change to update the service that introduced a bug.
 
-or you can run the code as a 
+ 
 
 
 

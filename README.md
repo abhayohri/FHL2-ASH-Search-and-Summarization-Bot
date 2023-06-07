@@ -66,7 +66,7 @@ response
  ```
 
 third request:
-http://127.0.0.1:5000/askQuestion/?question=what%20are%20Authentication%20issues&skip=2
+http://127.0.0.1:5000/askQuestion/?question=what%20are%20the%20Authentication%20issues?&skip=2  
 
 at this point cognitive search does not return any documents to search. thus we search the latest docs via our api via vector search and return search_comlete: true
 so the ui knows no more results to search
@@ -75,12 +75,12 @@ response
 
 ```
 
-    {  
-        "answer":"Authentication issues refer to difficulties experienced by customers when attempting to access Azure, Dynamics 365, and/or Microsoft 365 due to platform issues or third-party push notification service errors. The causes of these issues are related to validation steps, in-memory cache in the browser, secondary failures during maintenance, and high rates of errors in third-party push notification services. Microsoft has responded to these issues by executing a rollback to the previous known good build, increasing instance counts, routing traffic to other regions, and failing over to the legacy channel. Microsoft is taking steps to improve resiliency, update troubleshooting guides, and improve public documentation. Customers can make incidents like this less impactful by evaluating the reliability of their applications using guidance from the Azure Well-Architected Framework and configuring Azure Service Health alerts. \n\n",  
-        "next_skip":3,  
-        ***"search_complete":true,***  
-        "source_tracking_ids":["RV5D-7S0","F_BK-398","XS0G-B98","FKPH-7Z8"]  
-    }
+   {
+        "answer":"Tracking ID RV5D-7S0: Customers using Azure Active Directory in Sweden Central may have experienced authentication issues when attempting to access Azure, Dynamics 365, and/or Microsoft 365. \n\nTracking ID FKPH-7Z8: Customers using Authenticator App for Azure Multi-Factor Authentication (MFA) may have experienced difficulties in receiving push notification on their Android phones to sign into Azure resources, such as Azure Active Directory, when Multi-Factor Authentication is required by policy. \n\nTracking ID XS0G-B98: Some of our Azure Active Directory customers experienced authentication issues when attempting to access Azure, Dynamics 365, and/or Microsoft 365, due to a secondary failure that led to the service reaching its pre-configured maximum limits for one of our internal resources. \n\nTracking ID FLX7-VD8: Some of our Multi-Factor Authentication (MFA) customers experienced issues when attempting a pull-down refresh using the Microsoft Authenticator app on Android devices. \n\n",
+        "next_skip":3,
+        "search_complete":true,
+        "source_tracking_ids":["RV5D-7S0","FKPH-7Z8","XS0G-B98","FLX7-VD8"]
+   }
 ```
 
 ### Example 2: no data returned

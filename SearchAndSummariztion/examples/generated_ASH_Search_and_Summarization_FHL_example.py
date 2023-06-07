@@ -133,36 +133,48 @@ def num_tokens_from_docs(docs: List[Document]) -> int:
     return num_tokens
 
 
-
-
 # %%
 
 def limit_docs_to_max_token_lenght(summary_docs):# instead should just chunk the array into chunks of token size and return array of arrays
     # Calculate number of tokens of our docs
-    summary_docs_used = []
-    summary_docs_used_token_count = 0
+    all_docs_split =[]
+    current_group = []
+    current_group_token_count = 0
     for doc1 in summary_docs:
-        summary_num_tokens = num_tokens_from_string(doc1.page_content)
+        current_group_num_tokens = num_tokens_from_string(doc1.page_content)
 
-        if summary_docs_used_token_count + summary_num_tokens < model_tokens_limit(MODEL):
-            summary_docs_used_token_count = summary_docs_used_token_count + summary_num_tokens
-            summary_docs_used.append(doc1)  
+        if current_group_token_count + current_group_num_tokens < model_tokens_limit(MODEL):
+            current_group_token_count = current_group_token_count + current_group_num_tokens
+            current_group.append(doc1)
+        else:
+            all_docs_split.append(current_group.copy())
+            current_group = []
+            current_group_token_count = 0
+
 
     print("Custom token limit for", MODEL, ":", model_tokens_limit(MODEL))
     #print("total number of documents used: ", len(all_docs_used))
-    print("Summary docs count: ", len(summary_docs_used))
-    print("Summary docs token count: ", num_tokens_from_docs(summary_docs_used))
+    
     #print("Comparison docs token count: ", len(comparison_docs))
     return summary_docs_used
 if mode == "Jupyter":
-    summary_docs_used = limit_docs_to_max_token_lenght(summary_docs)
+    all_docs_split = limit_docs_to_max_token_lenght(summary_docs)
+    comparison_docs_used = []
+    summary_docs_used = []
+    if all_docs_split is not None and len(all_docs_split) > 0:
+        summary_docs_used = all_docs_split[0]
+        comparison_docs_used = all_docs_split[0]
+    
+        print("Summary docs count: ", len(summary_docs_used))
+        print("Summary docs token count: ", num_tokens_from_docs(summary_docs_used))
 
 
 # %%
-def fetch_ASH_data_as_langchain_docs():
+def fetch_ASH_data_as_langchain_docs(skip = None):
     summary_data = fetch_data()
     summary_docs  = create_langchain_documents(summary_data)
-    summary_docs_used = limit_docs_to_max_token_lenght(summary_docs)
+    if skip is not None:
+        summary_docs_used = limit_docs_to_max_token_lenght(summary_docs)[skip] # currently not used as we get all the documents and find the best. but could be used in the future for batching
     return summary_docs
     
 
@@ -227,10 +239,12 @@ if mode == "Jupyter":
 
     if mode == "Jupyter":
 
-        response1 = chain1({"input_documents": summary_docs_used,"question":"", "language": "English"})
+        
+        response_summary1 = chain1({"input_documents": summary_docs_used,"question":"", "language": "English"})
+        #response_summary2 = chain1({"input_documents": comparison_docs_used,"question":"", "language": "English"})
 
         #response1 = chain1({"input_documents": summary_docs,"question":"", "token_length": int(model_tokens_limit(MODEL)/2), "language": "English"})
-        answer1 = response1['output_text']
+        answer1 = response_summary1['output_text']
         #print(response1)
         #print(answer1)
 
@@ -347,7 +361,7 @@ def sort_and_order_content(agg_search_results):
         title = str(ordered_content[id]['title']) if (ordered_content[id]['title']) else ordered_content[id]['name']
         score = str(round(ordered_content[id]['score'],2))
         #display(HTML('<h5><a href="'+ url + '">' + title + '</a> - score: '+ score + '</h5>'))
-        print(f"${id} - ${title} - ${score}")
+        print(f"{id} - {title} - {score}")
         #display(HTML(ordered_content[id]['caption']))
 
     return ordered_content
@@ -408,6 +422,9 @@ def get_chain_type_and_top_docs(question, tokens_limit,num_tokens,docs):
             print(f"number of docs returned by api: {len(docs)}" )
             if docs is None or len(docs) == 0:
                 return None,"",True
+            
+        
+        
         # Select the Embedder model
         if len(docs) < 50:
             # OpenAI models are accurate but slower, they also only (for now) accept one text at a time (chunk_size)
@@ -419,13 +436,16 @@ def get_chain_type_and_top_docs(question, tokens_limit,num_tokens,docs):
             # The fastest english model is "all-MiniLM-L12-v2"
             embedder = HuggingFaceEmbeddings(model_name = 'distiluse-base-multilingual-cased-v2') #not deployed
         
+        print(docs)
+        print(len(docs))
         print(embedder)
+        print(question)
         
         # Create our in-memory vector database index from the chunks given by Azure Search.
         # We are using FAISS. https://ai.facebook.com/tools/faiss/
         db = FAISS.from_documents(docs, embedder)
         top_docs = db.similarity_search(question, k=4)  # Return the top 4 documents
-        print(f"the top docs selected by similarity search: ${len(top_docs)}" )
+        print(f"the top docs selected by similarity search: {len(top_docs)}" )
         
         # Now we need to recalculate the tokens count of the top results from similarity vector search
         # in order to select the chain type: stuff (all chunks in one prompt) or 
@@ -450,7 +470,7 @@ if mode == "Jupyter":
 
 
 # %%
-def search_wrapper(question,skip):
+def search_wrapper(question,skip = 0):
     agg_search_results, num_results_found, num_returned_results = get_agg_search_results(question,skip)
     ordered_content = sort_and_order_content(agg_search_results)
     docs  = create_langchain_documents(ordered_content)
@@ -586,8 +606,8 @@ if mode == "Jupyter":
 
 # %%
 if mode == "Jupyter":
-    top_docs2,chain_type2,search_complete, num_docs = search_wrapper(5)
-    answer2 = get_chat_response(chain_type2,top_docs2)
+    top_docs2,chain_type2,search_complete, num_docs = search_wrapper(QUESTION,1)
+    answer2 = get_chat_response(QUESTION,llm2,chain_type2,top_docs2)
     display(HTML('<h4>Azure OpenAI ChatGPT Answer:</h4>'))
     display(HTML(answer2.split("SOURCES:")[0]))
 
@@ -603,8 +623,8 @@ if mode == "Jupyter":
 
 # %%
 if mode == "Jupyter":
-    top_docs3,chain_type3,search_complete, num_docs = search_wrapper(20)
-    answer3 = get_chat_response(chain_type3,top_docs3)
+    top_docs3,chain_type3,search_complete, num_docs = search_wrapper(QUESTION,20)
+    answer3 = get_chat_response(QUESTION,llm2,chain_type3,top_docs3)
     display(HTML('<h4>Azure OpenAI ChatGPT Answer:</h4>'))
     display(HTML(answer3.split("SOURCES:")[0]))
 

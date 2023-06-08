@@ -39,7 +39,7 @@ service runs it as a flask service while Jupyter just runs the notebook example
 
 ### Example 1: got data 
 first request:
-http://127.0.0.1:5000/askQuestion/?question=what%20are%20the%20Authentication%20issues?
+http://127.0.0.1:5000/askQuestion?question=what%20are%20the%20Authentication%20issues?
 
 response:
 ```
@@ -52,7 +52,7 @@ response:
 ```
 
 second request:
-http://127.0.0.1:5000/askQuestion/?question=what%20are%20the%20Authentication%20issues?&skip=1
+http://127.0.0.1:5000/askQuestion?question=what%20are%20the%20Authentication%20issues?&skip=1
 
 response
 ```
@@ -66,7 +66,7 @@ response
  ```
 
 third request:
-http://127.0.0.1:5000/askQuestion/?question=what%20are%20the%20Authentication%20issues?&skip=2  
+http://127.0.0.1:5000/askQuestion?question=what%20are%20the%20Authentication%20issues?&skip=2  
 
 at this point cognitive search does not return any documents to search. thus we search the latest docs via our api via vector search and return search_comlete: true
 so the ui knows no more results to search
@@ -86,7 +86,7 @@ response
 ### Example 2: no data returned
     
 request
-http://127.0.0.1:5000/askQuestion/?question=fafhagha
+http://127.0.0.1:5000/askQuestion?question=fafhagha
 response
 
 ```

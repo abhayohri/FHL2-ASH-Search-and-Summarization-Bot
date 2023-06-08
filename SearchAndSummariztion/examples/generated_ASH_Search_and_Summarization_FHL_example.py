@@ -638,53 +638,63 @@ if mode == "Jupyter":
 # 3. To ask further questions about the same set of events. trivial here need to maintain session or pass event information in service client model
 
 # %%
-# flask service
+from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 
-if mode == "Service":
+app = Flask(__name__)
+CORS(app)
 
-    from flask import Flask, request,  jsonify
-    app = Flask(__name__)
+HTTP_400_BAD_REQUEST = 400
 
-    HTTP_400_BAD_REQUEST = 400
+llm3 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
 
-    llm3 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
+@app.route('/askQuestion', methods=["GET", "OPTIONS", "POST"])
+@cross_origin()
+def hello_world():
+    if request.method == "OPTIONS":
+        # Handle the OPTIONS request here
+        response = jsonify({'message': 'CORS preflight request successful'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET')
+        return response
 
-    @app.route('/askQuestion/')
-    def hello_world():
-        if request.args is None:
-            return jsonify({'error': "No question asked"}),HTTP_400_BAD_REQUEST    
+    if request.args is None:
+        return jsonify({'error': "No question asked"}), HTTP_400_BAD_REQUEST
 
-        question = request.args.get('question')
-        if question is None or len(question) == 0: 
-            return jsonify({'error': "No question asked"}),HTTP_400_BAD_REQUEST
-        
-        
+    question = request.args.get('question')
+    if question is None or len(question) == 0:
+        return jsonify({'error': "No question asked"}), HTTP_400_BAD_REQUEST
+
+    skip = 0
+    try:
+        skip = int(request.args.get('skip'))
+    except:
         skip = 0
-        try:
-            skip = int(request.args.get('skip'))
-        except:
-            skip = 0
 
-        search_complete = False
-        print(f"the question is: {question}")
-        print(f"skip is: {skip}")
-        top_docs3,chain_type3,search_complete,num_searched_docs = search_wrapper(question,skip)               
-        answer3 = get_chat_response(question,llm3,chain_type3,top_docs3)      
+    search_complete = False
+    print(f"the question is: {question}")
+    print(f"skip is: {skip}")
+    top_docs3, chain_type3, search_complete, num_searched_docs = search_wrapper(question, skip)
+    answer3 = get_chat_response(question, llm3, chain_type3, top_docs3)
 
+    try:
+        answer = answer3.split("SOURCES:")[0]
+    except:
+        answer = ""
 
-        try:
-            answer = answer3.split("SOURCES:")[0]
-        except:
-            answer = ""
+    try:
+        sources = answer3.split("SOURCES:")[1].replace(" ", "").split(",")
+    except:
+        sources = ""
 
-        try:
-            sources = answer3.split("SOURCES:")[1].replace(" ","").split(",")
-        except: 
-            sources = ""           
+    response = jsonify(answer=answer, source_tracking_ids=sources, next_skip=skip + 1, search_complete=search_complete)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', '*')
+    response.headers.add('Access-Control-Allow-Methods', 'GET')
 
-        return jsonify(answer = answer , source_tracking_ids = sources, next_skip = skip +1, search_complete = search_complete)   
+    return response
 
-    
-    app.run()
+app.run(debug=False)
 
 

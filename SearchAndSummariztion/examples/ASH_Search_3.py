@@ -32,6 +32,8 @@ PORTAL_TOKEN = parser.get('my_api','PORTAL_TOKEN')
 URL  = parser.get('my_api','ASH_EXAMPLE_DATA_SOURCE')
 MODEL = "gpt-35-turbo" # options: gpt-35-turbo, gpt-4, gpt-4-32k
 
+SEARCH_STRATEGY = "azure-search" #('azure-search', 'ash-api', 'azure-search-similarity-embedder')
+
 # Set the ENV variables that Langchain needs to connect to Azure OpenAI
 os.environ["OPENAI_API_BASE"] = os.environ["AZURE_OPENAI_ENDPOINT"] = AZURE_OPENAI_ENDPOINT
 os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_API_KEY"] = AZURE_OPENAI_API_KEY
@@ -55,6 +57,16 @@ from bs4 import BeautifulSoup
 import re
 import pandas as pd
 from common.model_common import model_tokens_limit, num_tokens_from_string, num_tokens_from_docs
+from common.azure_search_helper import get_formatted_azure_search_results, sort_and_order_content
+from common.ash_events_helper import fetch_events_data
+
+# %%
+# api-endpoint
+URL  = parser.get('my_api','ASH_EXAMPLE_DATA_SOURCE') 
+
+if mode == "Jupyter":
+    ash_data = fetch_events_data(URL, ASHheaders)
+    print (ash_data)
 
 # %% [markdown]
 # 2. Create langchain documents and get the most recent documents that are within the token limit
@@ -81,9 +93,6 @@ def get_token_sizes(docs):
         print("NO RESULTS FROM AZURE SEARCH")
         return tokens_limit,0
 
-
-
-
 # %% [markdown]
 # Create LLM model
 
@@ -95,12 +104,11 @@ if mode == "Jupyter":
     llm2 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
 
 # %% [markdown]
-# Formulate the query
+# #### Formulate the query
 
 # %%
 if mode == "Jupyter":
     QUESTION = "what are the Authentication issues?" # the question asked by the user
-
 
 # %%
 QUERY_PROMT_TEMPLATE = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about Azure outages and service issues.
@@ -154,10 +162,12 @@ def get_search_query(question, hisory_text = ""):
 
     ## TBD: add chat history/summary as query input
     search_query = generate_query_from_history(user_input, hisory_text)
-    print ("search query: {}".format(search_query))
+    
 
     if search_query == "":
         search_query = user_input
+
+    print ("search query: {}".format(search_query))
     return search_query
 
 
@@ -165,7 +175,7 @@ if mode == "Jupyter":
     search_query = get_search_query(QUESTION)
 
 # %% [markdown]
-# # Case 2: Search    
+# #### Case 1: Azure Search    
 #   
 # The first Question the user asks:
 
@@ -185,7 +195,7 @@ if mode == "Jupyter":
 
 # %%
 ## calls Azure Search service to get relevant documents based on the query.
-def get_agg_search_results(search_query, filter = None, skip = 0): # get the events the question might pertain to. currently gets 5 events in the example
+def get_azure_search_results(search_query, filter = None, skip = 0): # get the events the question might pertain to. currently gets 5 events in the example
     
     print ("Calling Azure search to get relevant documents...")
     agg_search_results = [] 
@@ -225,79 +235,96 @@ def get_agg_search_results(search_query, filter = None, skip = 0): # get the eve
         
         return agg_search_results, results_found, returned_results 
 
+# %%
+def fetch_azure_search_data_as_langchain_docs(search_query):
+    agg_search_results, results_found, returned_results = get_azure_search_results(search_query)
+    formatted_search_results = get_formatted_azure_search_results(agg_search_results)
+    ordered_search_results = sort_and_order_content(formatted_search_results)  # filter and order document by search score
+    #print(json.dumps(ordered_content, indent=4))
+    docs  = create_langchain_documents(ordered_search_results)
+    return docs
+
 
 if mode == "Jupyter":
-    agg_search_results, results_found, returned_results = get_agg_search_results(search_query,  0)
-    #agg_search_results
-    #print (results_found)
-    #print (returned_results)
+    docs = fetch_azure_search_data_as_langchain_docs(search_query)
+    print ("Azure search results:", docs)
 
 # %% [markdown]
-# 2. Filter and order search results by score:
+# #### Case 2: get data from ASH events API and do similarity search/vector search
 
 # %%
-# from the above responses more filtering is possible simmilar to 
+ 
+def fetch_ASH_data_as_langchain_docs():
+    summary_data = fetch_events_data(URL, ASHheaders)
+    summary_docs  = create_langchain_documents(summary_data)
+    #summary_docs_used = limit_docs_to_max_token_lenght(summary_docs)
+    return summary_docs
 
-#display(HTML('<h4>Top Answers</h4>'))
-
-def sort_and_order_content(agg_search_results):
-    for search_results in agg_search_results:
-        if '@search.answers' in search_results:
-            for result in search_results['@search.answers']:
-                print(result['score'])
-                if result['score'] > 0.5: # Show answers that are at least 50% of the max possible score=1
-                    print("got here")
-                    display(HTML('<h5>' + 'Answer - score: ' + str(round(result['score'],2)) + '</h5>'))
-                    display(HTML(result['text']))
-                
-    #print("\n\n")
-    #display(HTML('<h4>Top Results</h4>'))
-
-    content = dict()
-    ordered_content = OrderedDict()
-
-
-    for search_results in agg_search_results:
-        for result in search_results['value']:
-            if result['@search.rerankerScore'] > 0.5: # Filter results that are at least 12.5% of the max possible score=4
-                content[result['id']]={
-                                        "title": result['title'],
-                                        "chunks": result['pages'],
-                                        "language": result['language'], 
-                                        "caption": result['@search.captions'][0]['text'],
-                                        "score": result['@search.rerankerScore'],
-                                        #"name": result['metadata_storage_name'], 
-                                        #"location": result['metadata_storage_path']                  
-                                    }
-                
-    #print(json.dumps(content, indent=4))
-        
-    #After results have been filtered we will Sort and add them as an Ordered list\n",
-    for id in sorted(content, key= lambda x: content[x]["score"], reverse=True):
-        ordered_content[id] = content[id]
-        #url = ordered_content[id]['location'] + DATASOURCE_SAS_TOKEN
-        title = str(ordered_content[id]['title']) if (ordered_content[id]['title']) else ordered_content[id]['name']
-        score = str(round(ordered_content[id]['score'],2))
-        #display(HTML('<h5><a href="'+ url + '">' + title + '</a> - score: '+ score + '</h5>'))
-        print(f"${id} - ${title} - ${score}")
-        #display(HTML(ordered_content[id]['caption']))
-
-    return ordered_content
 
 if mode == "Jupyter":
-    ordered_content = sort_and_order_content(agg_search_results)
-    #print(json.dumps(ordered_content, indent=4))
-    docs  = create_langchain_documents(ordered_content)
-    tokens_limit,num_tokens = get_token_sizes(docs)
-
-# %% [markdown]
-# 3. The vector search:
+    docs = fetch_ASH_data_as_langchain_docs()
+    print (docs)
 
 # %%
  
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 
+def select_emedding_model(docs):
+    if len(docs) < 50:
+        # OpenAI models are accurate but slower, they also only (for now) accept one text at a time (chunk_size)
+        embedder = OpenAIEmbeddings(deployment="text-embedding-ada-002", chunk_size=1) 
+    else:
+        # Bert based models are faster (3x-10x) but not as great in accuracy as OpenAI models
+        # Since this repo supports Multiple languages we need to use a multilingual model. 
+        # But if English only is the requirement, use "multi-qa-MiniLM-L6-cos-v1"
+        # The fastest english model is "all-MiniLM-L12-v2"
+        embedder = HuggingFaceEmbeddings(model_name = 'distiluse-base-multilingual-cased-v2') #not deployed
+    
+    print(embedder)
+
+def find_most_relevant_docs(search_query, docs):
+    if (len(docs) == 0):
+        return docs
+    embedder = select_emedding_model(docs)
+
+    # Create our in-memory vector database index from the chunks given by Azure Search.
+    # We are using FAISS. https://ai.facebook.com/tools/faiss/
+    db = FAISS.from_documents(docs, embedder)
+    top_docs = db.similarity_search(search_query, k=4)  # Return the top 4 documents
+    return top_docs
+
+# %%
+def do_search(search_query, search_strategy):
+    if search_strategy == 'azure-search':
+        docs = fetch_azure_search_data_as_langchain_docs(search_query)
+        print(f"number of docs returned by azure search: {len(docs)}" )
+        top_docs = docs
+    elif search_strategy == "ash-api":
+        docs = fetch_ASH_data_as_langchain_docs()
+        print(f"number of docs returned by api: {len(docs)}" )
+        top_docs = find_most_relevant_docs(search_query, docs)
+    elif search_strategy == 'azure-search-similarity-embedder':
+        docs = fetch_azure_search_data_as_langchain_docs(search_query)
+        print(f"number of docs returned by azure search: {len(docs)}" )
+        top_docs = find_most_relevant_docs(search_query, docs)
+        print(f"the top docs selected by similarity search: ${len(top_docs)}" )
+
+    tokens_limit,num_tokens = get_token_sizes(docs)
+    chain_type = "map_reduce" if num_tokens > tokens_limit else "stuff"
+    return top_docs, chain_type, True
+
+
+if mode == "Jupyter":
+    search_strategy = SEARCH_STRATEGY
+    print("search_strategy: ", SEARCH_STRATEGY)
+    top_docs,chain_type,search_complete = do_search(search_query, SEARCH_STRATEGY)
+    print("Chain Type selected:", chain_type)
+
+# %% [markdown]
+# 3. The vector search:
+
+# %%
 def get_chain_type_and_top_docs(question, tokens_limit,num_tokens,docs):    
     print(num_tokens)
     search_complete =False
@@ -342,22 +369,6 @@ def get_chain_type_and_top_docs(question, tokens_limit,num_tokens,docs):
     
     
     return top_docs,chain_type,search_complete
-
-if mode == "Jupyter": 
-    top_docs,chain_type,search_complete = get_chain_type_and_top_docs(QUESTION,tokens_limit,num_tokens,docs)
-    
-    print("Chain Type selected:", chain_type)
-
-
-# %%
-def search_wrapper(question,skip, history_text :str):
-    search_query = get_search_query(question, history_text)
-    agg_search_results, num_results_found, num_returned_results = get_agg_search_results(search_query, skip)
-    ordered_retrieved_docs = sort_and_order_content(agg_search_results)
-    langchain_docs  = create_langchain_documents(ordered_retrieved_docs)
-    tokens_limit,num_tokens = get_token_sizes(langchain_docs)
-    top_docs,chain_type,search_complete = get_chain_type_and_top_docs(question,tokens_limit,num_tokens,langchain_docs)
-    return top_docs,chain_type,search_complete, num_returned_results
 
 # %% [markdown]
 # #### Search is complete time to Summarize the data:
@@ -426,46 +437,12 @@ COMBINE_PROMPT = PromptTemplate(
     template=COMBINE_PROMPT_TEMPLATE, input_variables=["summaries", "question", "language", "chat_history"]
 )
 
-# %%
-# Set the ENV variables that Langchain needs to connect to Azure OpenAI
-os.environ["OPENAI_API_BASE"] = os.environ["AZURE_OPENAI_ENDPOINT"] = AZURE_OPENAI_ENDPOINT
-os.environ["OPENAI_API_KEY"] = os.environ["AZURE_OPENAI_API_KEY"] = AZURE_OPENAI_API_KEY
-os.environ["OPENAI_API_VERSION"] = os.environ["AZURE_OPENAI_API_VERSION"] = AZURE_OPENAI_API_VERSION
-os.environ["OPENAI_API_TYPE"] = "azure"   
-
-
-
-def get_chat_response(question,llm2,chain_type,top_docs, chat_history):
-
-    if top_docs is not None and len(top_docs)> 0:
-        if chain_type == "stuff":
-            chain = load_qa_with_sources_chain(llm2, chain_type=chain_type, 
-                                            prompt=COMBINE_PROMPT)
-        elif chain_type == "map_reduce":
-            chain = load_qa_with_sources_chain(llm2, chain_type=chain_type, 
-                                            question_prompt=COMBINE_QUESTION_PROMPT,
-                                            combine_prompt=COMBINE_PROMPT,
-                                            return_intermediate_steps=True)
-
-        response = chain({"input_documents": top_docs, "question": question, "language": "English", "chat_history": chat_history})
-        answer = response['output_text']
-        #print(response)
-        print(answer)
-        return answer
-    return ""
-
-if mode == "Jupyter":
-    # Create our LLM model
-    # Make sure you have the deployment named "gpt-35-turbo" for the model "gpt-35-turbo (0301)". 
-    # Use "gpt-4" if you have it available.
-    llm2 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
-    answer = get_chat_response(QUESTION,llm2,chain_type,top_docs)
-
 # %% [markdown]
 # ##### remember history
 
 # %%
 h_arr = [] #history array
+answer = ""
 
 def add_history(history_arr, user_input= "", answer = ""):
     
@@ -485,24 +462,19 @@ def get_chat_history_as_text(history, include_last_turn=True, approx_max_tokens=
         for h in reversed(history if include_last_turn else history[:-1]):
             history_text = """<|im_start|>user""" +"\n" + h["user"] + "\n" + """<|im_end|>""" + "\n" + """<|im_start|>assistant""" + "\n" + (h.get("bot") + """<|im_end|>""" if h.get("bot") else "") + "\n" + history_text
             if len(history_text) > approx_max_tokens*4:
-                break    
+                break
+        print ("chat_history: ", history_text)
         return history_text
 
 
 if mode == "Jupyter":
-     h_arr = add_history(h_arr, QUESTION, answer)
-     print (h_arr)
-     history_text = get_chat_history_as_text(h_arr)
-     print (history_text)
+    h_arr = add_history(h_arr, QUESTION, answer)
+    print (h_arr)
+    history_text = get_chat_history_as_text(h_arr)
+    print ("chat_history: ", history_text)
 
 # %%
-  
-
-
-
-def get_chat_response(question,llm2,chain_type,top_docs, chat_history):
-    print ("chat_history: ", chat_history)
-    
+def get_chat_response(question,llm2,chain_type,top_docs, chat_history):    
     if top_docs is not None and len(top_docs)> 0:
         if chain_type == "stuff":
             chain = load_qa_with_sources_chain(llm2, chain_type=chain_type, 
@@ -515,8 +487,8 @@ def get_chat_response(question,llm2,chain_type,top_docs, chat_history):
 
         response = chain({"input_documents": top_docs, "question": question, "language": "English", "chat_history": chat_history})
         answer = response['output_text']
-        #print(response)
-        print(answer)
+        print(response)
+        print("GPT output:", answer)
         return answer
     return ""
 
@@ -530,12 +502,8 @@ if mode == "Jupyter":
     llm2 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
     answer = get_chat_response(search_query,llm2,chain_type,top_docs, history_text)
 
-
-# %%
-if mode == "Jupyter":
     display(HTML('<h4>Azure OpenAI ChatGPT Answer:</h4>'))
     display(HTML(answer.split("SOURCES:")[0]))
-
 
 
 # %%
@@ -551,28 +519,55 @@ if mode == "Jupyter":
 # %% [markdown]
 # #### Running the flask service
 
+# %% [markdown]
+# ##### Orchestrate search app
+
+# %%
+def search_wrapper(question,skip, history_text :str, search_strategy: str):
+
+    search_query = get_search_query(question, history_text)
+    
+    top_docs,chain_type,search_complete = do_search(search_query, search_strategy)
+    
+    return top_docs,chain_type,search_complete
+
+# %%
+## validates and grounds the answer
+def get_answer_and_sources(gpt_output):
+    print ("gpt_output", gpt_output)
+    answer = ""
+    sources = ""
+    
+    try:
+        answer = gpt_output.split("SOURCES:")[0]
+    except:
+        answer = ""
+
+    try:
+        sources = gpt_output.split("SOURCES:")[1].replace(" ","").split(",")
+    except: 
+        sources = ""
+
+    if answer == "":
+        answer = "I'm sorry, I couldn't find relevant information. Please try asking again."    
+    return answer, sources
+
+
 # %%
 
 
-def orchestrate_simple_chat(llm3, question: str, skip: int, history_arr: list):
+## orchestration layer
+def orchestrate_simple_chat(llm3, question: str, skip: int, history_arr: list, search_strategy: str):
 
     # convert history into text.
     chat_history = get_chat_history_as_text(history_arr)
     
     #search
-    top_docs3,chain_type3,search_complete,num_searched_docs = search_wrapper(question, skip, chat_history)
+    top_docs3,chain_type3,search_complete = search_wrapper(question, skip, chat_history, search_strategy)
 
     #prompt chatgpt               
-    answer3 = get_chat_response(question,llm3,chain_type3,top_docs3, chat_history)
-    try:
-        answer = answer3.split("SOURCES:")[0]
-    except:
-        answer = ""
-
-    try:
-        sources = answer3.split("SOURCES:")[1].replace(" ","").split(",")
-    except: 
-        sources = ""     
+    gpt_output = get_chat_response(question,llm3,chain_type3,top_docs3, chat_history)
+    answer, sources = get_answer_and_sources(gpt_output)
 
     history_arr =  add_history(history_arr,question, answer)      
     print ("chat_history: ", history_arr)
@@ -614,7 +609,7 @@ if mode == "Service":
         print(f"the question is: {question}")
         print(f"skip is: {skip}")
              
-        json_response, history_arr = orchestrate_simple_chat(llm3, question, skip, history_arr)
+        json_response, history_arr = orchestrate_simple_chat(llm3, question, skip, history_arr, search_strategy= SEARCH_STRATEGY)
         #print ("json_response", json_response.json())
         
         
@@ -624,6 +619,9 @@ if mode == "Service":
 
     
     app.run()
+
+# %% [markdown]
+# #######
 
 # %% [markdown]
 # Sample:

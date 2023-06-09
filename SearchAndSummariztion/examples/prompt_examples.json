@@ -31,7 +31,7 @@
 		"answer_sources" : "QL4L-5D8"
 	},
 	{
-		"question" : "Do I have any upcoming maintenance events?",
+		"question" : "Are there any maintenance event updates?",
 		"documents" : [
 			{
 				"content" : "Log Analytics - North Europe - Mitigated ",
@@ -97,6 +97,21 @@
 			}
 		],
 		"answer" : "You have one event affecting East Asia. \nMNJV-5Z8: Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region. A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue. More information will be available in 2 hours or sooner as events warrant.",
+		"answer_sources" : "MNJV-5Z8"
+	},
+	{
+		"question" : "Tell me more about MVJV-5Z8",
+		"documents" : [
+			{
+				"content" : "Virtual Machines - East Asia – Investigating (Extended)",
+				"source" : "MNJV-5Z8"
+			},
+			{
+				"content" : "<p><strong>Impact Statement:</strong>&nbsp;Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region.</p><p>&nbsp;</p><p><strong>Current Status:&nbsp;</strong>A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue, and so we have added additional resources to assist with our investigations. More information will be available when we have determined which additional mitigation streams we can attempt, which should be available in 2 hours or sooner as events warrant.</p>",
+				"source" : "MNJV-5Z8"
+			}
+		],
+		"answer" : "MNJV-5Z8: Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region. A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue. More information will be available in 2 hours or sooner as events warrant.",
 		"answer_sources" : "MNJV-5Z8"
 	}
 ]

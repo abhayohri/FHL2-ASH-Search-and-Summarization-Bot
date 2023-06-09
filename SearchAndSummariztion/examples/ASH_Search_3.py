@@ -145,7 +145,7 @@ def generate_query_from_history(question, chat_history, debug= False):
     completion = openai.Completion.create(
             engine=MODEL, 
             prompt=QUERY_PROMT_TEMPLATE.format(chat_history, question), 
-            temperature=0.5, 
+            temperature=0.3, 
             max_tokens=32, 
             n=1, 
             stop=["\n"])
@@ -393,6 +393,7 @@ def create_prompt_template():
     ALWAYS return a "SOURCES" part in your answer.
     Instead of using the word "Document" use "event"
     Instead of using the word "Source" use "Tracking ID"
+    Instead of saying straightforwardly that the user had issues, try saying "You may have experienced" or "You might have noticed"
     Respond in {language}.
     =========
     Chat History:

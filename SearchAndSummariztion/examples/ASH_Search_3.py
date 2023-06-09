@@ -16,6 +16,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from configparser import ConfigParser
 from flask import Flask, request,  jsonify
+from flask_cors import CORS, cross_origin
 import openai
 
 parser = ConfigParser()
@@ -129,8 +130,10 @@ Search query:
 
 # %%
 
-def generate_query_from_history(question, chat_history):
-    print ("chat_history: ", chat_history)
+def generate_query_from_history(question, chat_history, debug= False):
+    if debug:
+        print ("method: generate_query_from_history")
+        print ("chat_history: ", chat_history)
     
     answer = ""
     if chat_history == "":
@@ -529,6 +532,8 @@ def search_wrapper(question,skip, history_text :str, search_strategy: str):
     
     top_docs,chain_type,search_complete = do_search(search_query, search_strategy)
     
+
+    print ('search complete in do_search...')
     return top_docs,chain_type,search_complete
 
 # %%
@@ -572,24 +577,32 @@ def orchestrate_simple_chat(llm3, question: str, skip: int, history_arr: list, s
     history_arr =  add_history(history_arr,question, answer)      
     print ("chat_history: ", history_arr)
     
-    return jsonify(answer = answer , source_tracking_ids = sources, next_skip = skip +1, search_complete = search_complete), history_arr    
+
+    response = jsonify(answer = answer , source_tracking_ids = sources, next_skip = skip +1, search_complete = search_complete)
+
+    return response, history_arr    
 
 # %%
+from flask import Response
 # flask service
 
 if mode == "Service":
 
     
     app = Flask(__name__)
+    cors = CORS(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     HTTP_400_BAD_REQUEST = 400
 
-   
     llm3 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
     history_arr = []
 
     @app.route('/askQuestion/')
-    def hello_world():
+    @cross_origin()
+    def ask_question():
+        print ("REQUEST: ", request)
+
         if request.args is None:
             return jsonify({'error': "No question asked"}),HTTP_400_BAD_REQUEST    
 
@@ -610,15 +623,23 @@ if mode == "Service":
         print(f"skip is: {skip}")
              
         json_response, history_arr = orchestrate_simple_chat(llm3, question, skip, history_arr, search_strategy= SEARCH_STRATEGY)
-        #print ("json_response", json_response.json())
+        print ("=====================")
         
         
         return json_response
 
-        
-
+    @app.route('/hello/', methods=['GET'])
+    @cross_origin()
+    def hello_world():
+        print ("REQUEST: ", request)
+        response = Response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     
     app.run()
+
+# %%
+
 
 # %% [markdown]
 # #######

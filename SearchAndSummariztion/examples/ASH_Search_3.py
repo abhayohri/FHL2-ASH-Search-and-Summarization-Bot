@@ -20,7 +20,7 @@ from flask_cors import CORS, cross_origin
 import openai
 
 parser = ConfigParser()
-parser.read('../secrets2.cfg')
+parser.read('../secrets.cfg')
 
 AZURE_SEARCH_API_VERSION = parser.get('my_api','AZURE_SEARCH_API_VERSION')
 AZURE_OPENAI_API_VERSION = parser.get('my_api','AZURE_OPENAI_API_VERSION')
@@ -44,7 +44,7 @@ os.environ["OPENAI_API_TYPE"] = "azure"
 # Setup the Payloads header
 headers = {'Content-Type': 'application/json','api-key': AZURE_SEARCH_KEY}
 ASHheaders = {"Authorization": PORTAL_TOKEN}
-indexes = ["fhlabhishekindex"]
+indexes = ["servicehealthfhl-index1"]
 
 
 # mode = "Jupyter"
@@ -76,6 +76,7 @@ if mode == "Jupyter":
 def create_langchain_documents(ordered_content):# Iterate over each of the results chunks and create a LangChain Document class to use further in the pipeline
     docs = []
     for key,value in ordered_content.items():
+        docs.append(Document(page_content=value["title"], metadata={"source": key}))
         for page in value["chunks"]:
             docs.append(Document(page_content=page, metadata={"source": key}))
     return docs

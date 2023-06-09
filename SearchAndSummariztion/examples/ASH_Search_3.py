@@ -145,7 +145,7 @@ def generate_query_from_history(question, chat_history, debug= False):
     completion = openai.Completion.create(
             engine=MODEL, 
             prompt=QUERY_PROMT_TEMPLATE.format(chat_history, question), 
-            temperature=0.0, 
+            temperature=0.5, 
             max_tokens=32, 
             n=1, 
             stop=["\n"])
@@ -386,10 +386,13 @@ def create_prompt_template():
     """
     template_end = """
     <-- End of examples
+    DO NOT cite the examples above in your response. Instead, reference the information below.
+    
     Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES"). 
     If you don't know the answer, just say "Sorry, I couldn't find a clear answer for this.". Don't try to make up an answer.
     ALWAYS return a "SOURCES" part in your answer.
-    Instead of using the word "Document" use "Tracking ID"
+    Instead of using the word "Document" use "event"
+    Instead of using the word "Source" use "Tracking ID"
     Respond in {language}.
     =========
     Chat History:

@@ -1,0 +1,102 @@
+[
+	{
+		"question" : "Do I have any recommended or required actions?",
+		"documents" : [
+			{
+				"content" : "Support for Azure Database for MariaDB v10.3 extended until 16 September 2025",
+				"source" : "WMMH-JP8"
+			},
+			{
+				"content" : "<p><strong><em>You’re receiving this notice because you may use Azure Database for MariaDB.&nbsp;</em></strong></p>",
+				"source" : "WMMH-JP8"
+			},
+			{
+				"content" : "Action required: Transition to built-in Azure Monitor alerts for Azure Backup",
+				"source" : "QL4L-5D8"
+			},
+			{
+				"content" : "<p><strong><em>You’re receiving this notice because you may use Azure Database for MariaDB.&nbsp;</em></strong></p><p><strong>On 31 March 2026,&nbsp;</strong><a href=\"https://aka.ms/AzureBackupClassicAlerts\" target=\"_blank\"><strong>classic alerts</strong></a><strong>&nbsp;for Recovery Services vaults in Azure Backup will be retired and no longer supported</strong>.&nbsp;Before that date, you'll need to transition to a new alerting solution.</p>",
+				"source" : "QL4L-5D8"
+			},
+			{
+				"content" : "<p>We recommend using&nbsp;<a href=\"https://learn.microsoft.com/azure/backup/move-to-azure-monitor-alerts#supported-alerting-solutions\" target=\"_blank\">built-in Azure Monitor alerts</a>&nbsp;because they include the same capabilities as classic alerts, plus:</p> <ul><li>Support for multiple notification channels.</li><li>Alert monitoring at scale.</li><li>Programmatic management of alerts and notifications.</li></ul><p></p>",
+				"source" : "QL4L-5D8"
+			},
+			{
+				"content" : "<p>To ensure you continue to receive alerts for Recovery Services vaults in<em>&nbsp;</em>Azure Backup, review&nbsp;<a href=\"https://azure.microsoft.com/pricing/details/monitor/\" target=\"_blank\">pricing</a>&nbsp;and<strong>&nbsp;</strong><a href=\"https://aka.ms/AzMonAlertsBackup\" target=\"_blank\"><strong>transition</strong></a><strong>&nbsp;to built-in Azure Monitor alerts or another supported alerting solution by 31 March 2026.</strong></p>",
+				"source" : "QL4L-5D8"
+			}
+		],
+		"answer" : "Yes, you have one required action, which can be found from Tracking ID QL4L-5D8. To ensure you continue to receive alerts for Recovery Services vaults in Azure backup, please transition to built-in Azure Monitor alerts or another supported alerting solution by 31 March 2026. We recommend using built-in Azure Monitor alerts because they include the same capabilities as classic alerts, plus support for multiple notification channels.",
+		"answer_sources" : "QL4L-5D8"
+	},
+	{
+		"question" : "Do I have any upcoming maintenance events?",
+		"documents" : [
+			{
+				"content" : "Log Analytics - North Europe - Mitigated ",
+				"source" : "GMGH-BTZ"
+			},
+			{
+				"content" : "<p><strong>Impact statement:</strong> Between at 07:10 UTC and 13:15 UTC on 14 Jun 2021, you were identified as a customer using Log analytics in north Europe who may have experienced intermittent data latency and data gaps.&nbsp;Incorrect alert activation may have also been experienced for resources hosted in this region.</p><p><strong>Preliminary root cause:</strong> We determined that a Log Analytics instance became unhealthy, leading to the aforementioned issues for a subset of customers.</p>",
+				"source" : "GMGH-BTZ"
+			},
+			{
+				"content" : "Notification for Scheduled Maintenance to Azure Database for MySQL Flexible Server",
+				"source" : "MNC9-T98"
+			},
+			{
+				"content" : "This notification is for previously scheduled maintenance to your Azure Database for MySQL Flexible Server instance <a>lpph-7a174e9309e24075843557a3db6a3f0e-dbserver</a> in North Europe. This maintenance event is now completed. Feel free to refer to your <a>portal</a> for more information. For any additional questions, please contact <a>support</a>.",
+				"source" : "MNC9-T98"
+			},
+			{
+				"content" : "Notification for Scheduled Maintenance to Azure Database for PostgreSQL Flexible Server",
+				"source" : "RNX1-TZ0"
+			},
+			{
+				"content" : "Dear Customer, We have an important information regarding your Azure Database for PostgreSQL Flexible server instance <a href=\"https://portal.azure.com/#resource/subscriptions/f7f31b70-1620-4763-8a67-47d29cedf60a/resourceGroups/DevResourceGroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/valueblockstage1/overview\">valueblockstage1</a> in West Europe. There is an upcoming scheduled maintenance to apply necessary service optimizations including performance and security updates. During this time, you may experience brief periods of connectivity issues or increased latency to your flexible server instance. Feel free to refer to service health in <a href=\"https://aka.ms/servicehealthpm\">azure portal</a> for more information. For any additional questions, please contact <a href=\"https://aka.ms/azuresupportrequest\">support</a>. No specific action is required at this time from you. <br><br>Maintenance Start Time: Sun, 26 Feb 2023 01:33:00 GMT <br>Maintenance End Time: Sun, 26 Feb 2023 02:33:00 GMT",
+				"source" : "RNX1-TZ0"
+			}
+		],
+		"answer" : "You have an upcoming maintenance event for your your Azure Database for PostgreSQL Flexible server instance in in West Europe, which has Tracking ID RNX1-TZ0. There is an upcoming scheduled maintenance to apply necessary service optimizations including performance and security updates. During this time, you may experience brief periods of connectivity issues or increased latency to your flexible server instance. Additionally, your maintenance event for your Azure Database for MySQL Flexible Server instance in North Europe is now completed, which had Tracking ID MNC9-T98.",
+		"answer_sources" : "MNC9-T98, RNX1-TZ0"
+	},
+	{
+		"question" : "What authentication issues am I having?",
+		"documents" : [
+			{
+				"content" : "Action required: Suspicious activity detected in your Azure subscription",
+				"source" : "3S2_-3P8"
+			},
+			{
+				"content" : "Suspicious activity has been detected in your Azure subscription. To prevent your subscription from being deactivated,<a href=\"https://aka.ms/accountreview\"> use this link to create a support ticket </a>and a member of the Account Review team will contact you within two hours to help you resolve this issue.",
+				"source" : "3S2_-3P8"
+			},
+			{
+				"content" : "Azure SQL DW Scheduled Maintenance Pending",
+				"source" : "0MRG-DTG"
+			},
+			{
+				"content" : "This is an advance notice to let you know that maintenance is scheduled to occur on your data warehouse during the following maintenance period:<br> <b>7/17/2021 12:00:00 PM</b> - <b>7/17/2021 8:00:00 PM</b> UTC<br><br> To minimize downtime, please ensure no transactions will be active during the maintenance period.",
+				"source" : "0MRG-DTG"
+			}
+		],
+		"answer" : "From the events provideed, I did not find any authentication issues.",
+		"answer_sources" : ""
+	},
+	{
+		"question" : "What's happening in East Asia?",
+		"documents" : [
+			{
+				"content" : "Virtual Machines - East Asia – Investigating (Extended)",
+				"source" : "MNJV-5Z8"
+			},
+			{
+				"content" : "<p><strong>Impact Statement:</strong>&nbsp;Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region.</p><p>&nbsp;</p><p><strong>Current Status:&nbsp;</strong>A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue, and so we have added additional resources to assist with our investigations. More information will be available when we have determined which additional mitigation streams we can attempt, which should be available in 2 hours or sooner as events warrant.</p>",
+				"source" : "MNJV-5Z8"
+			}
+		],
+		"answer" : "Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region. A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue. More information will be available in 2 hours or sooner as events warrant. This event can be found at Tracking ID MNJV-5Z8.",
+		"answer_sources" : "MNJV-5Z8"
+	}
+]

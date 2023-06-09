@@ -27,7 +27,7 @@
 				"source" : "QL4L-5D8"
 			}
 		],
-		"answer" : "Yes, you have one required action, which can be found from Tracking ID QL4L-5D8. To ensure you continue to receive alerts for Recovery Services vaults in Azure backup, please transition to built-in Azure Monitor alerts or another supported alerting solution by 31 March 2026. We recommend using built-in Azure Monitor alerts because they include the same capabilities as classic alerts, plus support for multiple notification channels.",
+		"answer" : "Yes, you have one required action, which can be found from Tracking ID QL4L-5D8. \nQL4L-5DB8: To ensure you continue to receive alerts for Recovery Services vaults in Azure backup, please transition to built-in Azure Monitor alerts or another supported alerting solution by 31 March 2026. We recommend using built-in Azure Monitor alerts because they include the same capabilities as classic alerts, plus support for multiple notification channels.",
 		"answer_sources" : "QL4L-5D8"
 	},
 	{
@@ -58,7 +58,7 @@
 				"source" : "RNX1-TZ0"
 			}
 		],
-		"answer" : "You have an upcoming maintenance event for your your Azure Database for PostgreSQL Flexible server instance in in West Europe, which has Tracking ID RNX1-TZ0. There is an upcoming scheduled maintenance to apply necessary service optimizations including performance and security updates. During this time, you may experience brief periods of connectivity issues or increased latency to your flexible server instance. Additionally, your maintenance event for your Azure Database for MySQL Flexible Server instance in North Europe is now completed, which had Tracking ID MNC9-T98.",
+		"answer" : "You have an upcoming maintenance event for your your Azure Database for PostgreSQL Flexible server instance in in West Europe, which has Tracking ID RNX1-TZ0. \nRNX1-TZ0: There is an upcoming scheduled maintenance to apply necessary service optimizations including performance and security updates. During this time, you may experience brief periods of connectivity issues or increased latency to your flexible server instance.\nAdditionally, your maintenance event for your Azure Database for MySQL Flexible Server instance in North Europe is now completed, which had Tracking ID MNC9-T98.",
 		"answer_sources" : "MNC9-T98, RNX1-TZ0"
 	},
 	{
@@ -96,7 +96,7 @@
 				"source" : "MNJV-5Z8"
 			}
 		],
-		"answer" : "Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region. A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue. More information will be available in 2 hours or sooner as events warrant. This event can be found at Tracking ID MNJV-5Z8.",
+		"answer" : "You have one event affecting East Asia. \nMNJV-5Z8: Starting at 11:47 UTC on 26 Dec 2022, you have been identified as a customer using Virtual Machines in East Asia who may receive error notifications when performing service management operations - such as create, delete, update, scaling, start, stop - for resources hosted in this region. A backend service responsible for processing service management operations entered an unhealthy state following a high number of calls received from a service utilized in the creation of Virtual Machines. This resulted in a large number of failures causing a backlog of requests. Thus far we've applied a limit to the number of incoming calls and have updated the configurations to reduce the number of retries to reduce the load and failure counts. However, additional mitigation is needed before we can resolve this issue. More information will be available in 2 hours or sooner as events warrant.",
 		"answer_sources" : "MNJV-5Z8"
 	}
 ]

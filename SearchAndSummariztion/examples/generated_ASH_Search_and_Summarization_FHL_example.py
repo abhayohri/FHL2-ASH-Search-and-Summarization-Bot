@@ -29,7 +29,7 @@ MODEL = "gpt-35-turbo" # options: gpt-35-turbo, gpt-4, gpt-4-32k
 # Setup the Payloads header
 headers = {'Content-Type': 'application/json','api-key': AZURE_SEARCH_KEY}
 ASHheaders = {"Authorization": PORTAL_TOKEN}
-indexes = ["servicehealthfhl-index1"]
+
 #mode = "Jupyter"
 mode = "Service"
 
@@ -156,7 +156,7 @@ def limit_docs_to_max_token_lenght(summary_docs):# instead should just chunk the
     #print("total number of documents used: ", len(all_docs_used))
     
     #print("Comparison docs token count: ", len(comparison_docs))
-    return summary_docs_used
+    return all_docs_split
 if mode == "Jupyter":
     all_docs_split = limit_docs_to_max_token_lenght(summary_docs)
     comparison_docs_used = []
@@ -277,7 +277,8 @@ if mode == "Jupyter":
 # 1. The keyword search: 
 
 # %%
-
+indexes = ["ashdataindex"]
+semanticConfiguration = "ASHDataSemanticConfiguration"
 def get_agg_search_results(question,skip = 0): # get the events the question might pertain to. currently gets 5 events in the example
     agg_search_results = [] 
 
@@ -293,7 +294,7 @@ def get_agg_search_results(question,skip = 0): # get the events the question mig
         url += '&$top=5'  # You can change this to anything you need/want
         url += '&queryLanguage=en-us'
         url += '&queryType=semantic'
-        url += '&semanticConfiguration=servicehealthfhl-semantic-config'
+        url += '&semanticConfiguration=ASHDataSemanticConfiguration'
         url += '&$count=true'
         url += '&speller=lexicon'
         url += '&answers=extractive|count-3'
@@ -302,7 +303,7 @@ def get_agg_search_results(question,skip = 0): # get the events the question mig
 
         resp = requests.get(url, headers=headers)
         #print(url)
-        #print(resp.status_code)
+        print(resp.status_code)
 
         search_results = resp.json()
         agg_search_results.append(search_results)
@@ -367,8 +368,10 @@ def sort_and_order_content(agg_search_results):
     return ordered_content
 if mode == "Jupyter":
     ordered_content = sort_and_order_content(agg_search_results)
-    #print(json.dumps(ordered_content, indent=4))
+    print(json.dumps(ordered_content, indent=4))
     docs  = create_langchain_documents(ordered_content)
+    print("Number of chunks for chat gpt to use:",len(docs))
+    docs
 
 # %%
 
@@ -378,11 +381,10 @@ def get_docs_wrapper(question, skip):
     agg_search_results, results_found, returned_results = get_agg_search_results(question, skip)
     ordered_content = sort_and_order_content(agg_search_results)
     docs  = create_langchain_documents(ordered_content)
-    return docs
+    return docs   
     
+        
     
-if mode == "Jupyter":        
-    print("Number of chunks for chat gpt to use:",len(docs))
 
 # %%
 
@@ -638,26 +640,20 @@ if mode == "Jupyter":
 # 3. To ask further questions about the same set of events. trivial here need to maintain session or pass event information in service client model
 
 # %%
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 HTTP_400_BAD_REQUEST = 400
 
 llm3 = AzureChatOpenAI(deployment_name=MODEL, temperature=0, max_tokens=500)
 
-@app.route('/askQuestion', methods=["GET", "OPTIONS", "POST"])
+@app.route('/askQuestion/', methods=["GET", "OPTIONS", "POST"])
 @cross_origin()
-def hello_world():
-    if request.method == "OPTIONS":
-        # Handle the OPTIONS request here
-        response = jsonify({'message': 'CORS preflight request successful'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', '*')
-        response.headers.add('Access-Control-Allow-Methods', 'GET')
-        return response
+def ask_question():   
 
     if request.args is None:
         return jsonify({'error': "No question asked"}), HTTP_400_BAD_REQUEST
@@ -689,10 +685,15 @@ def hello_world():
         sources = ""
 
     response = jsonify(answer=answer, source_tracking_ids=sources, next_skip=skip + 1, search_complete=search_complete)
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', '*')
-    response.headers.add('Access-Control-Allow-Methods', 'GET')
 
+    return response
+
+@app.route('/hello/', methods=['GET'])
+@cross_origin()
+def hello_world():
+    print ("REQUEST: ", request)
+    response = Response()
+    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 app.run(debug=False)

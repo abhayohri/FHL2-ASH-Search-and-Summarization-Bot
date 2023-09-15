@@ -258,12 +258,66 @@ if mode == "Jupyter":
 # %% [markdown]
 # # Case 2: Search    
 #   
-# The first Question the user asks:
+# The first Question the user asks is below we first try and determine the intent based on user history(single session for demo):
 
 # %%
 if mode == "Jupyter":
     QUESTION = "what are the Authentication issues?" # the question asked by the user
 
+
+# %%
+QUERY_PROMT_TEMPLATE = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about Azure outages and service issues.
+    Generate a search query based on the conversation and the new question. 
+    Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
+    Do not include any text inside [] or <<>> in the search query terms.
+    If the question is not in English, translate the question to English before generating the search query.
+=========
+Chat History:
+{}
+=========
+Question:
+{}
+
+Search query:
+"""
+
+# %%
+import openai
+
+history_arr = []
+
+def get_chat_history_as_text(include_last_turn=True, approx_max_tokens=1000) -> str:
+        history_text = ""
+        for h in reversed(history_arr if include_last_turn else history[:-1]):
+            history_text = """<|im_start|>user""" +"\n" + h["user"] + "\n" + """<|im_end|>""" + "\n" + """<|im_start|>assistant""" + "\n" + (h.get("bot") + """<|im_end|>""" if h.get("bot") else "") + "\n" + history_text
+            if len(history_text) > approx_max_tokens*4:
+                break
+        print ("chat_history: ", history_text)
+        return history_text
+
+def generate_query_from_history(question, chat_history, debug= False):
+    if debug:
+        print ("method: generate_query_from_history")
+        print ("chat_history: ", chat_history)
+    
+    answer = ""
+    if chat_history == "":
+        print ("Not calling GPT to make query")
+        return answer
+
+    completion = openai.Completion.create(
+            engine=MODEL, 
+            prompt=QUERY_PROMT_TEMPLATE.format(chat_history, question), 
+            temperature=0.0, 
+            max_tokens=32, 
+            n=1, 
+            stop=["\n"])
+    q = completion.choices[0].text
+
+    answer = q
+
+    print(answer)
+    return answer
 
 # %% [markdown]
 # ##### To find what events might be associated with this Question. We need to search all the users events we do this currently via keyword cognitive search and by a limited in memory vector search.
@@ -302,7 +356,7 @@ def get_agg_search_results(question,skip = 0): # get the events the question mig
         url += f'&$skip={_skip}'
 
         resp = requests.get(url, headers=headers)
-        #print(url)
+        print(url)
         print(resp.status_code)
 
         search_results = resp.json()
@@ -592,11 +646,12 @@ if mode == "Jupyter":
 #we get the sources:
 if mode == "Jupyter":
     
-    sources_list = answer.split("SOURCES:")[1].replace(" ","").split(",")
-    sources_html = '<u>Sources</u>: '
-    display(HTML(sources_html))
-    for index, value in enumerate(sources_list):
-        print(value)
+    if len(answer.split("SOURCES:"))>1:
+        sources_list = answer.split("SOURCES:")[1].replace(" ","").split(",")
+        sources_html = '<u>Sources</u>: '
+        display(HTML(sources_html))
+        for index, value in enumerate(sources_list):
+            print(value)
     
     
 
@@ -637,7 +692,7 @@ if mode == "Jupyter":
         print(value3)
 
 # %% [markdown]
-# 3. To ask further questions about the same set of events. trivial here need to maintain session or pass event information in service client model
+# ### Service entry
 
 # %%
 from flask import Flask, request, jsonify, Response
@@ -671,6 +726,8 @@ def ask_question():
     search_complete = False
     print(f"the question is: {question}")
     print(f"skip is: {skip}")
+    question = generate_query_from_history(question, history_arr, debug= False)
+    print(f"the intent is: {question}")
     top_docs3, chain_type3, search_complete, num_searched_docs = search_wrapper(question, skip)
     answer3 = get_chat_response(question, llm3, chain_type3, top_docs3)
 
@@ -685,6 +742,9 @@ def ask_question():
         sources = ""
 
     response = jsonify(answer=answer, source_tracking_ids=sources, next_skip=skip + 1, search_complete=search_complete)
+
+    temp_history_dict = {'user': question, 'bot': response}
+    history_arr.append(temp_history_dict)
 
     return response
 
